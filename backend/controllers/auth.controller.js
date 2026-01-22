@@ -5,7 +5,12 @@ dotenv.config();
 
 import { User } from "../models/user.model.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
-import { sendVerificationEmail, sendWelcomeEmail, sendResetPasswordEmail, sendResetPasswordSuccessEmail } from "../mailtrap/emails.js";
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+  sendResetPasswordEmail,
+  sendResetPasswordSuccessEmail,
+} from "../mailtrap/emails.js";
 
 export const signup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -72,7 +77,9 @@ export const verifyEmail = async (req, res) => {
 
   try {
     if (!code) {
-       return res.status(400).json({ success: false, message: "Verification code is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Verification code is required" });
     }
 
     const user = await User.findOne({
@@ -115,27 +122,33 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: "All fields are required!" });
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required!" });
   }
 
   try {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid credentials!" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials!" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(400).json({ success: false, message: "Invalid credentials!" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials!" });
     }
 
     generateTokenAndSetCookie(res, user._id);
-    
+
     user.lastLogin = new Date();
     await user.save();
-    
+
     res.status(200).json({
       success: true,
       message: "Logged in successfully!",
@@ -144,7 +157,6 @@ export const login = async (req, res) => {
         password: undefined,
       },
     });
-
   } catch (error) {
     console.log("Error in login controller ", error);
     return res.status(500).json({ success: false, message: error.message });
@@ -163,23 +175,30 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "User not found" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
     }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(20).toString("hex");
     const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
-    
+
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpiresAt = resetTokenExpiresAt;
 
     await user.save();
 
     // Send reset password email
-    await sendResetPasswordEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
-    
-    return res.status(200).json({ success: true, message: "Reset password email sent successfully" });
+    await sendResetPasswordEmail(
+      user.email,
+      `${process.env.CLIENT_URL}/reset-password/${resetToken}`,
+    );
 
+    return res.status(200).json({
+      success: true,
+      message: "Reset password email sent successfully",
+    });
   } catch (error) {
     console.log("Error in forgotPassword controller ", error);
     return res.status(500).json({ success: false, message: error.message });
@@ -187,17 +206,19 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const resetPassword = async (req, res) => {
-
   try {
     const { token } = req.params;
     const { password } = req.body;
 
-    const user = await User.findOne({ resetPasswordToken: token, 
+    const user = await User.findOne({
+      resetPasswordToken: token,
       resetPasswordExpiresAt: { $gt: Date.now() },
-     });
+    });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired reset token" });
     }
 
     // update password
@@ -209,10 +230,31 @@ export const resetPassword = async (req, res) => {
     await user.save();
 
     await sendResetPasswordSuccessEmail(user.email);
-    
-    return res.status(200).json({ success: true, message: "Password reset successfully" });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.log("Error in resetPassword controller ", error);
     return res.status(500).json({ success: false, message: error.message });
   }
-}
+};
+
+export const checkAuth = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.log("Error in checkAuth controller ", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
