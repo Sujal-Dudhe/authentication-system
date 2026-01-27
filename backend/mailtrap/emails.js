@@ -2,7 +2,8 @@ import { VERIFICATION_EMAIL_TEMPLATE, PASSWORD_RESET_REQUEST_TEMPLATE, PASSWORD_
 import { client as mailtrapClient, sender } from "./mailtrap.config.js";
 
 export const sendVerificationEmail = async (email, verificationToken) => {
-  const recipient = [{ email }];
+  const toEmail = process.env.NODE_ENV === "development" && process.env.MAILTRAP_OWNER_EMAIL ? process.env.MAILTRAP_OWNER_EMAIL : email;
+  const recipient = [{ email: toEmail }];
 
   try {
     const response = await mailtrapClient.send({
@@ -18,14 +19,16 @@ export const sendVerificationEmail = async (email, verificationToken) => {
 
     console.log("Verification Email sent successfully", response);
   } catch (error) {
-    console.error(`Error sending verification`, error);
+    console.error(`Error sending verification email:`, error);
 
-    throw new Error(`Error sending verification email: ${error}`);
+    // Do not throw — email failures in dev (Mailtrap demo) should not block signup
+    return null;
   }
 };
 
 export const sendWelcomeEmail = async (email, name) => {
-  const recipient = [{ email }];
+  const toEmail = process.env.NODE_ENV === "development" && process.env.MAILTRAP_OWNER_EMAIL ? process.env.MAILTRAP_OWNER_EMAIL : email;
+  const recipient = [{ email: toEmail }];
 
   try {
     const response = await mailtrapClient.send({
@@ -41,13 +44,13 @@ export const sendWelcomeEmail = async (email, name) => {
     console.log("Welcome Email sent successfully", response);
   } catch (error) {
     console.error("Error sending welcome email", error);
-
-    throw new Error(`Error sending welcome email: ${error}`);
+    return null;
   }
 };
 
 export const sendResetPasswordEmail = async (email, resetURL) => {
-  const recipient = [{ email }];
+  const toEmail = process.env.NODE_ENV === "development" && process.env.MAILTRAP_OWNER_EMAIL ? process.env.MAILTRAP_OWNER_EMAIL : email;
+  const recipient = [{ email: toEmail }];
 
   try {
     const response = await mailtrapClient.send({
@@ -65,12 +68,13 @@ export const sendResetPasswordEmail = async (email, resetURL) => {
 
   } catch (error) {
     console.error("Error sending reset password email", error);
-    throw new Error(`Error sending reset password email: ${error}`);
+    return null;
   }
 };
 
 export const sendResetPasswordSuccessEmail = async (email) => {
-  const recipient = [{email}];
+  const toEmail = process.env.NODE_ENV === "development" && process.env.MAILTRAP_OWNER_EMAIL ? process.env.MAILTRAP_OWNER_EMAIL : email;
+  const recipient = [{ email: toEmail }];
   
   try {
     const response = await mailtrapClient.send({
@@ -85,6 +89,6 @@ export const sendResetPasswordSuccessEmail = async (email) => {
 
   } catch (error) {
     console.error("Error sending reset password success email", error);
-    throw new Error(`Error sending reset password success email: ${error}`);
+    return null;
   }
 };
