@@ -37,4 +37,43 @@ export const useAuthStore = create((set) => ({
       throw error;
     }
   },
+
+  verifyEmail: async (verificationCode) => {
+    set({ isLoading: true, error: null});
+    try {
+      const response = await axios.post(`${API_URL}/verify-email`, {
+        code: verificationCode,
+      });
+      set({
+        user: response.data.user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: error.response.data.message || "Error verifying email",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+	checkAuth: async () => {
+     set({ isCheckingAuth: true, error: null});
+     try {
+      const response = await axios.get(`${API_URL}/check-auth`);
+      set({
+        user: response.data.user,
+        isAuthenticated: true,
+        isCheckingAuth: false,
+      });
+     } catch (error) {
+        set({
+          isCheckingAuth: false,
+          isAuthenticated: false,
+          error: null
+     });
+     throw error;
+    }
+  },
 }));

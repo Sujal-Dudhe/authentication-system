@@ -13,7 +13,7 @@ const LoginPage = () => {
     e.preventDefault();
   };
 
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -37,7 +37,7 @@ const LoginPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          
+
           <Input
             icon={Lock}
             type="password"
@@ -65,10 +65,10 @@ const LoginPage = () => {
       </div>
 
       <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
-      <p className="text-sm text-gray-400">
-        Don't have an account? {" "}
-       <Link to='/signup' className="text-green-400 hover:underline">Sign Up</Link>
-      </p>
+        <p className="text-sm text-gray-400">
+          Don't have an account? {" "}
+          <Link to='/signup' className="text-green-400 hover:underline">Sign Up</Link>
+        </p>
       </div>
     </motion.div>
   )
