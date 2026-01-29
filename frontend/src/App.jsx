@@ -32,9 +32,15 @@ const ProtectedRoute = ({ children }) => {
 // redirect authenticated users to the home page
 const RedirectAuthenticatedUser = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
+  console.log("RedirectAuthenticatedUser", { isAuthenticated, user });
+
 
   if (isAuthenticated && user.isVerified) {
     return <Navigate to='/' replace />;
+  }
+
+  if (isAuthenticated && !user.isVerified) {
+    return <Navigate to='/verify-email' replace />;
   }
 
   return children;
